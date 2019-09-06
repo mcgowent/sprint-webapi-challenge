@@ -1,14 +1,22 @@
-/*
-play this: https://www.youtube.com/watch?v=d-diB65scQU
+// // code away!
+require('dotenv').config() // Allows use of a .env file to save the port
 
-Sing along:
+const express = require('express') //importing express
+const actionsRouter = require('./_actions_/actionsRoute')  // Connecting the routes for actions
+const projectsRouter = require('./_projects_/projectsRoute')  // Connecting the routes for projects
 
-here's a little code I wrote, you might want to read it really slow, don't worry be happy
-in every line there may be trouble, but if you worry you make it double, don't worry, be happy
-ain't got no sense of what is REST? just concentrate on learning Express, don't worry, be happy
-your file is getting way too big, bring a Router and make it thin, don't worry, be crafty
-there is no data on that route, just write some code, you'll sort it out… don't worry, just API…
-I need this code, just don't know where, perhaps should make some middleware, don't worry, be happy
+const port = process.env.PORT  // Use a project white variable to set the port
 
-Go code!
-*/
+
+const server = express() //setting up express
+// server.use(express.json()) // Makes all data to be read as json
+
+server.use(express.json())
+
+
+server.use('/api/actions', actionsRouter)  // Setting up initial endpoints
+server.use('/api/projects', projectsRouter)
+
+server.listen(port, () => {
+    console.log(`Server running on port ${port}`)
+})
