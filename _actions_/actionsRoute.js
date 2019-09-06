@@ -2,159 +2,115 @@ const express = require('express');
 const projectsDB = require('../data/helpers/projectModel')
 const actionsDB = require('../data/helpers/actionModel')
 
-
 const router = express.Router();
 
-// // Posting for a new project requires a name, description, and a bool value called completed
-// router.post('/', (req, res) => {
-//     const { name, description, completed } = req.body
-//     if (!name || !description) {
-//         return res.status(400).json({ errorMessage: 'A name and description is required.' })
-//     }
+// Posting for a new action requires a project_id that needs to be checked against exsisting project ids
+//, description, notes, and a completed boolean not required
+router.post('/', (req, res) => {
+    const action = req.body
+    console.log('Line 11 in actionsRoute:', action.project_id)
 
-//     projectsDB.insert({ name, description, completed })
-//         .then(({ id }) => {
-//             projectsDB.get(id)
-//                 .then(users => {
-//                     res.status(201).json(users)
-//                 })
-//                 .catch(err => {
-//                     console.log(err)
-//                     res.status(500).json({ error: 'There was an error while saving the user to the database' })
-//                 })
-//         })
-//         .catch(err => {
-//             console.log(err)
-//             res.status(500).json({ error: "There was an error while saving the user to the database" })
-//         })
-// });
+    if (!action.notes || !action.description) {
+        return res.status(400).json({ errorMessage: 'A name and description is required.' })
+    }
 
-// router.post('/:user_id/posts', (req, res) => {
-//     const { text } = req.body;
-//     const { user_id } = req.params
+    projectsDB.get(action.project_id)
+        .then(userID => {
+            console.log('Line 19 in actionsRoute:', userID)
+            actionsDB.insert(action)
+                .then(({ id }) => {
+                    actionsDB.get(id)
+                        .then(actions => {
+                            res.status(201).json(actions)
+                        })
+                        .catch(err => {
+                            console.log('Line 27 in actionsRoute', err)
+                            res.status(500).json({ error: 'There was an error while saving the action to the database' })
+                        })
+                })
+                .catch(err => {
+                    console.log('Line 32 in actionsRoute', err)
+                    res.status(500).json({ error: "There was an error while saving the action" })
+                })
+        })
+        .catch(err => {
+            res.status(404).json({ error: "The project_id must match a current project id" })
+        })
 
-//     postDB.insert({ text, user_id })  //Used the ID of the user to make sure the data sent didn't need to have userID
-//         .then(result => {
-//             res.status(201).json(result)
-//         })
-//         .catch(err => {
-//             res.status(500).json({ error: 'Post was not created' })
-//         })
-// });
 
-// router.get('/', (req, res) => {
-//     db.get()
-//         .then(users => res.status(200).json(users))
-//         .catch(err => {
-//             console.log('Error inside of get users')
-//             res.status(500).json({ error: "The users info could not be retrieved." })
-//         })
-// });
 
-// router.get('/:id', validateUserId, (req, res) => {
-//     const { id } = req.params
-//     db.getById(id)
-//         .then(users => {
-//             console.log(users.name)
-//             if (users.name) {
-//                 return res.status(200).json(users)
-//             }
-//         })
-//         .catch(err => {
-//             res.status(404).json({ error: "The User with that ID doesn't exsist" })
-//         })
-// });
 
-// router.get('/:id/posts', validatePost, validateUserId, (req, res) => {
-//     const { id } = req.params
-//     postDB.getById(id)
-//         .then(post => {
-//             console.log(post.user_id)
-//             res.status(200).json(post)
-//         })
-//         .catch(err => {
-//             res.status(404).json({ error: "The User with that ID doesn't exsist" })
-//         })
-// });
+});
 
-// router.delete('/:id', validateUserId, (req, res) => {
-//     const { id } = req.params
-//     db.remove(id)
-//         .then(removed => {
-//             if (removed) {
-//                 res.status(204).end()
-//             } else (
-//                 res.status(404).json({ message: "The User with the specified ID does not exist." })
-//             )
-//         })
-//         .catch(err => {
-//             console.log(err)
-//             res.status(500).json({ error: "The User could not be removed." })
-//         })
-// });
+//Grab all the actions
+router.get('/', (req, res) => {
+    actionsDB.get()
+        .then(users => res.status(200).json(users))
+        .catch(err => {
+            console.log('Error inside of get Actions')
+            res.status(500).json({ error: "The Actions info could not be retrieved." })
+        })
+});
 
-// router.put('/:id', validateUserId, validateUser, (req, res) => {
-//     const { id } = req.params
-//     const { name } = req.body
+router.get('/:id', (req, res) => {
+    const { id } = req.params
+    console.log(id)
+    actionsDB.get(id)
+        .then(actions => {
+            console.log(actions)
+            if (actions) {
+                return res.status(200).json(actions)
+            } else {
+                res.status(404).json({ error: "The Action with that ID doesn't exsist" })
+            }
+        })
+        .catch(err => {
+            res.status(404).json({ error: "The Action with that ID doesn't exsist" })
+        })
+});
 
-//     db.update(id, { name })
-//         .then(updated => {
-//             console.log('Line 101', updated)
-//             db.getById(id)
-//                 .then(nameReturned => {
-//                     console.log('Line 104', nameReturned)
-//                     if (nameReturned) {
-//                         res.status(201).json(nameReturned)
-//                     } else {
-//                         res.status(404).json({ error: "The name with the specified ID does not exist." })
-//                     }
-//                 })
-//                 .catch(err => {
-//                     console.log(err)
-//                     res.status(500).json({ error: "There was an error while saving the name to the database" })
-//                 })
-//         })
-//         .catch(err => {
-//             console.log(err)
-//             res.status(500).json({ error: "There was an error while saving the name to the database." })
-//         })
-// });
+router.delete('/:id', (req, res) => {
+    const { id } = req.params
+    actionsDB.remove(id)
+        .then(removed => {
+            if (removed) {
+                res.status(204).end()
+            } else (
+                res.status(404).json({ message: "The Action with the specified ID does not exist." })
+            )
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({ error: "The Action could not be removed." })
+        })
+});
 
-// //custom middleware
+router.put('/:id', (req, res) => {
+    const { id } = req.params
+    const action = req.body
 
-// function validateUserId(req, res, next) {
-//     db.getById(req.params.id)
-//         .then(results => {
-//             if (results) {
-//                 req.user = results
-//                 console.log(req.user)
-//                 next()
-//             } else {
-//                 res.status(404).json({ message: "User ID is invalid" })
-//             }
-//         })
-// };
+    actionsDB.update(id, action)
+        .then(updated => {
+            console.log('Line 101', updated)
+            actionsDB.get(id)
+                .then(changes => {
+                    console.log('Line 104', changes)
+                    if (changes) {
+                        res.status(201).json(changes)
+                    } else {
+                        res.status(404).json({ error: "The Action with the specified ID does not exist." })
+                    }
+                })
+                .catch(err => {
+                    console.log(err)
+                    res.status(500).json({ error: "There was an error while saving the Action to the database" })
+                })
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({ error: "There was an error while saving the Action to the database." })
+        })
+});
 
-// function validateUser(req, res, next) {
-//     const user = req.body;
-//     if (!user) {
-//         res.status(400).json({ message: 'Missing user data' })
-//     } else if (!user.name) {
-//         res.status(400).json({ message: 'Missing required name field' })
-//     } else {
-//         next();
-//     }
-// };
-
-// function validatePost(req, res, next) {
-//     const post = req.body
-//     post.user_id = req.params.id
-//     if (!post.text) {
-//         res.status(400).json({ message: "missing required text field" })
-
-//     } else {
-//         next()
-//     }
-// };
 
 module.exports = router;
