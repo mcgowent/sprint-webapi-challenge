@@ -82,68 +82,32 @@ router.delete('/:id', (req, res) => {
         })
 });
 
-// router.put('/:id', validateUserId, validateUser, (req, res) => {
-//     const { id } = req.params
-//     const { name } = req.body
+router.put('/:id', (req, res) => {
+    const { id } = req.params
+    const project = req.body
 
-//     db.update(id, { name })
-//         .then(updated => {
-//             console.log('Line 101', updated)
-//             db.getById(id)
-//                 .then(nameReturned => {
-//                     console.log('Line 104', nameReturned)
-//                     if (nameReturned) {
-//                         res.status(201).json(nameReturned)
-//                     } else {
-//                         res.status(404).json({ error: "The name with the specified ID does not exist." })
-//                     }
-//                 })
-//                 .catch(err => {
-//                     console.log(err)
-//                     res.status(500).json({ error: "There was an error while saving the name to the database" })
-//                 })
-//         })
-//         .catch(err => {
-//             console.log(err)
-//             res.status(500).json({ error: "There was an error while saving the name to the database." })
-//         })
-// });
+    projectsDB.update(id, project)
+        .then(updated => {
+            console.log('Line 101', updated)
+            projectsDB.get(id)
+                .then(changes => {
+                    console.log('Line 104', changes)
+                    if (changes) {
+                        res.status(201).json(changes)
+                    } else {
+                        res.status(404).json({ error: "The project with the specified ID does not exist." })
+                    }
+                })
+                .catch(err => {
+                    console.log(err)
+                    res.status(500).json({ error: "There was an error while saving the project to the database" })
+                })
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({ error: "There was an error while saving the name to the database." })
+        })
+});
 
-// //custom middleware
-
-// function validateUserId(req, res, next) {
-//     db.getById(req.params.id)
-//         .then(results => {
-//             if (results) {
-//                 req.user = results
-//                 console.log(req.user)
-//                 next()
-//             } else {
-//                 res.status(404).json({ message: "User ID is invalid" })
-//             }
-//         })
-// };
-
-// function validateUser(req, res, next) {
-//     const user = req.body;
-//     if (!user) {
-//         res.status(400).json({ message: 'Missing user data' })
-//     } else if (!user.name) {
-//         res.status(400).json({ message: 'Missing required name field' })
-//     } else {
-//         next();
-//     }
-// };
-
-// function validatePost(req, res, next) {
-//     const post = req.body
-//     post.user_id = req.params.id
-//     if (!post.text) {
-//         res.status(400).json({ message: "missing required text field" })
-
-//     } else {
-//         next()
-//     }
-// };
 
 module.exports = router;
